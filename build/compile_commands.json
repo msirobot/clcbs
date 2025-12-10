@@ -1,0 +1,14 @@
+[
+{
+  "directory": "/home/runner/work/clcbs/clcbs/build",
+  "command": "/usr/bin/c++ -DBOOST_PROGRAM_OPTIONS_DYN_LINK -DBOOST_PROGRAM_OPTIONS_NO_LIB -I/home/runner/work/clcbs/clcbs/include -I/usr/include/ompl-1.5 -I/usr/include/eigen3  -Wall -Wextra -O3 -O3 -DNDEBUG -std=c++14 -o CMakeFiles/SH_Astar.dir/src/sh_astar.cpp.o -c /home/runner/work/clcbs/clcbs/src/sh_astar.cpp",
+  "file": "/home/runner/work/clcbs/clcbs/src/sh_astar.cpp",
+  "output": "CMakeFiles/SH_Astar.dir/src/sh_astar.cpp.o"
+},
+{
+  "directory": "/home/runner/work/clcbs/clcbs/build",
+  "command": "/usr/bin/c++ -DBOOST_PROGRAM_OPTIONS_DYN_LINK -DBOOST_PROGRAM_OPTIONS_NO_LIB -I/home/runner/work/clcbs/clcbs/include -I/usr/include/ompl-1.5 -I/usr/include/eigen3  -Wall -Wextra -O3 -O3 -DNDEBUG -std=c++14 -o CMakeFiles/CL-CBS.dir/src/cl_cbs.cpp.o -c /home/runner/work/clcbs/clcbs/src/cl_cbs.cpp",
+  "file": "/home/runner/work/clcbs/clcbs/src/cl_cbs.cpp",
+  "output": "CMakeFiles/CL-CBS.dir/src/cl_cbs.cpp.o"
+}
+]

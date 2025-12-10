@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.5)
 
 project(CL-CBS)
 
+# Add cmake directory to module path
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
+
 find_package(Boost 1.58 REQUIRED COMPONENTS program_options)
 find_package(PkgConfig)
 pkg_check_modules(YamlCpp yaml-cpp)
