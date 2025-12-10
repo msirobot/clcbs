@@ -1,0 +1,73 @@
+# Fleet Registry Configuration
+# Example heterogeneous robot fleet with three robot types
+
+agents:
+  # Type A: Sorting AGV (small, agile)
+  - id: 0
+    type: "SORTING_AGV"
+    length: 0.6        # meters
+    width: 0.5         # meters
+    wheelbase: 0.4     # meters
+    LF: 0.35           # Distance from rear axle to front
+    LB: 0.25           # Distance from rear axle to back
+    max_steering_angle: 0.8  # radians (~45 degrees)
+    max_velocity: 2.0  # m/s
+    penalty_turning: 1.3
+    penalty_reversing: 2.0
+
+  # Type B: Transporter (medium)
+  - id: 1
+    type: "TRANSPORTER"
+    length: 1.5
+    width: 1.0
+    wheelbase: 1.2
+    LF: 0.9
+    LB: 0.6
+    max_steering_angle: 0.5  # radians (~28 degrees)
+    max_velocity: 1.2
+    penalty_turning: 1.5
+    penalty_reversing: 2.0
+
+  # Type C: Heavy Forklift (large, slow)
+  - id: 2
+    type: "HEAVY_FORKLIFT"
+    length: 3.0
+    width: 1.5
+    wheelbase: 2.5
+    LF: 2.0
+    LB: 1.0
+    max_steering_angle: 0.35  # radians (~20 degrees)
+    max_velocity: 0.8
+    penalty_turning: 1.8
+    penalty_reversing: 2.5
+
+  # Additional agents (repeat types)
+  - id: 3
+    type: "SORTING_AGV"
+    length: 0.6
+    width: 0.5
+    wheelbase: 0.4
+    LF: 0.35
+    LB: 0.25
+    max_steering_angle: 0.8
+    max_velocity: 2.0
+
+  - id: 4
+    type: "TRANSPORTER"
+    length: 1.5
+    width: 1.0
+    wheelbase: 1.2
+    LF: 0.9
+    LB: 0.6
+    max_steering_angle: 0.5
+    max_velocity: 1.2
+
+  - id: 5
+    type: "SORTING_AGV"
+    length: 0.6
+    width: 0.5
+    wheelbase: 0.4
+    LF: 0.35
+    LB: 0.25
+    max_steering_angle: 0.8
+    max_velocity: 2.0

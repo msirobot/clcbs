@@ -107,6 +107,16 @@ target_link_libraries(CL-CBS
   /usr/lib/x86_64-linux-gnu/libboost_program_options.so
 )
 
+## HA-CL-CBS (Heterogeneous Adaptive CL-CBS)
+add_executable(ha_cl_cbs
+  src/ha_cl_cbs.cpp
+)
+target_link_libraries(ha_cl_cbs
+  ${Boost_LIBRARIES}
+  ${OMPL_LIBRARIES}
+  yaml-cpp
+)
+
 ## test CL-CBS
 # add_executable(test
 #   test/test_CLCBS.cpp
