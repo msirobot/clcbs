@@ -101,6 +101,7 @@ target_link_libraries(CL-CBS
   ${Boost_LIBRARIES}
   ${OMPL_LIBRARIES}
   yaml-cpp
+  /usr/lib/x86_64-linux-gnu/libboost_program_options.so
 )
 
 ## test CL-CBS
