@@ -201,11 +201,15 @@ int main(int argc, char* argv[]) {
     double makespan = 0, flowtime = 0, cost = 0;
     for (const auto& s : solution) cost += s.cost;
 
+    // Action encoding: 0-2 forward (straight, left, right), 3-5 backward
+    constexpr int NUM_FORWARD_ACTIONS = 3;
+    
     for (size_t a = 0; a < solution.size(); ++a) {
       double current_makespan = 0;
       for (size_t i = 0; i < solution[a].actions.size(); ++i) {
         const auto& params = fleet_registry.getParams(a);
-        if (solution[a].actions[i].first % 3 == 0)
+        // Check if action is straight (0 or 3)
+        if (solution[a].actions[i].first % NUM_FORWARD_ACTIONS == 0)
           current_makespan += params.getDx(0);
         else
           current_makespan += params.min_turning_radius * params.deltat;

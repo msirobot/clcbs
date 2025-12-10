@@ -97,7 +97,10 @@ struct AgentParams {
    */
   void computeDerivedParams() {
     // Discretization angle based on turning radius
-    deltat = 6.75 * 6.0 / 180.0 * M_PI;  // ~0.706 radians
+    // Using 6.75 degrees * 6 segments = 40.5 degrees per motion primitive arc
+    constexpr double DISCRETIZATION_DEGREES = 6.75;
+    constexpr double SEGMENTS_PER_TURN = 6.0;
+    deltat = DISCRETIZATION_DEGREES * SEGMENTS_PER_TURN / 180.0 * M_PI;  // ~0.706 radians
 
     // Resolution for indexing
     xyResolution = min_turning_radius * deltat;

@@ -160,10 +160,10 @@ namespace libMultiRobotPlanning {
 
 static inline float normalizeHeadingRad(float t) {
   if (t < 0) {
-    t = t - 2.f * M_PI * static_cast<int>(t / (2.f * M_PI));
+    t = t - 2.f * M_PI * std::floor(t / (2.f * M_PI));
     return 2.f * M_PI + t;
   }
-  return t - 2.f * M_PI * static_cast<int>(t / (2.f * M_PI));
+  return t - 2.f * M_PI * std::floor(t / (2.f * M_PI));
 }
 
 /**
@@ -299,15 +299,18 @@ class HAEnvironment {
         std::pow(state.x - m_goals[m_agentIdx].x, 2) +
         std::pow(state.y - m_goals[m_agentIdx].y, 2));
 
-    // Allow larger distance threshold
-    if (goal_distance > 5.0 * (m_current_params.LB + m_current_params.LF))
+    // Goal region threshold based on agent size
+    constexpr double GOAL_REGION_MULTIPLIER = 5.0;
+    if (goal_distance > GOAL_REGION_MULTIPLIER * (m_current_params.LB + m_current_params.LF))
       return false;
 
     if (state.time <= m_lastGoalConstraint) return false;
 
-    // Relaxed goal check - larger thresholds for testing
-    if (goal_distance < 2.0 * m_current_params.length &&
-        std::abs(normalizeHeadingRad(state.yaw - m_goals[m_agentIdx].yaw)) < 0.5) {
+    // Goal tolerance thresholds
+    constexpr double POSITION_TOLERANCE_MULTIPLIER = 2.0;
+    constexpr double HEADING_TOLERANCE_RAD = 0.5;  // ~28 degrees
+    if (goal_distance < POSITION_TOLERANCE_MULTIPLIER * m_current_params.length &&
+        std::abs(normalizeHeadingRad(state.yaw - m_goals[m_agentIdx].yaw)) < HEADING_TOLERANCE_RAD) {
       // Add goal state to path
       m_goals[m_agentIdx].time = state.time + 1;
       _camefrom.insert(std::make_pair(
@@ -415,8 +418,9 @@ class HAEnvironment {
     }
 
     // Check constraints
+    constexpr int DEFAULT_CONSTRAINT_TIME_BUFFER = 2;  // timesteps
     for (const auto& c : m_constraints->constraints) {
-      int time_buffer = 2;  // Default constraint wait time
+      int time_buffer = DEFAULT_CONSTRAINT_TIME_BUFFER;
       if (s.time >= c.time && s.time <= c.time + time_buffer) {
         const AgentParams& other_params = m_fleet_registry.getParams(c.agentid);
         if (CollisionChecker::checkCollision(s.x, s.y, s.yaw, m_current_params,
