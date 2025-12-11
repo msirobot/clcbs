@@ -1,12 +1,34 @@
-# CL-CBS
+# CL-CBS & HA-CL-CBS
 
 ## Overview
+
+This repository contains two multi-agent path planning algorithms for car-like robots:
+
+1. **CL-CBS (Car-Like Conflict-Based Search)**: Efficient and complete solver for homogeneous fleets
+2. **HA-CL-CBS (Heterogeneous Adaptive CL-CBS)**: Extended solver for heterogeneous robot fleets with diverse kinematic constraints
+
+### CL-CBS
 
 **Car-Like Conflict-Based Search (CL-CBS)** is an efficient and complete solver of Multi-Agent Path Finding for Car-like Robots problem. It applies a body conflict tree to address collisions considering the shape of agents. It also includes a new algorithm Spatiotemporal Hybrid-State A* as the single-agent path planner to generate path satisfying both kinematic and spatiotemporal constraints.
 
 <img src="img/8car.gif" width="60%" height="60%">
 
 The video demonstration can be found on [YouTube](https://www.youtube.com/watch?v=KThsX04ABvc)
+
+### HA-CL-CBS (NEW!)
+
+**Heterogeneous Adaptive CL-CBS** extends CL-CBS to handle mixed robot fleets with different:
+- **Sizes**: From small AGVs (0.9m × 0.5m) to large forklifts (4.5m × 1.5m)
+- **Turning Radii**: From agile robots (R_min = 0.5m) to heavy vehicles (R_min = 4.5m)
+- **Velocities**: From slow heavy-duty (0.8 m/s) to fast delivery robots (2.0 m/s)
+
+**Key Features:**
+- Fleet Registry System for managing robot specifications
+- Oriented Bounding Box (OBB) collision detection for heterogeneous agents
+- Priority batching based on capability scores
+- Backward compatible with existing CL-CBS scenarios
+
+📖 **[Read the full HA-CL-CBS documentation](docs/HA_CL_CBS_README.md)**
 
 ## Source Code
 ### Requirement
@@ -25,19 +47,42 @@ cmake -DCMAKE_BUILD_TYPE=Release  ..
 make -j8
 ```
 
-* `make`: Build CL-CBS code
+This builds three executables:
+* `CL-CBS`: Original homogeneous solver
+* `HA-CL-CBS`: Heterogeneous adaptive solver
+* `SH_Astar`: Single-agent planner
+
+### Build Targets
+* `make`: Build all executables
 * `make docs`: Build doxygen documentation
 * `make clang-format`: Re-format all source files
-* `make all`: Build all three targets above
 
 
-### Run example instances
+### Run CL-CBS (Homogeneous Fleet)
 ```bash
-# make sure your are in build folder
-# default 10 agent in a batch
+# make sure you are in build folder
+# default 10 agents in a batch
 ./CL-CBS -i ../benchmark/map100by100/agents20/obstacle/map_100by100_obst50_agents20_ex13.yaml -o output.yaml 
 # or compute 20 agents in a whole batch
 ./CL-CBS -i ../benchmark/map100by100/agents20/obstacle/map_100by100_obst50_agents20_ex13.yaml -o output.yaml -b 20 
+```
+
+### Run HA-CL-CBS (Heterogeneous Fleet)
+```bash
+# make sure you are in build folder
+# Run 3-agent mixed fleet scenario
+./HA-CL-CBS -i ../benchmark/warehouse_50x50/heterogeneous/simple_3agents_ex1.yaml \
+            -o output.yaml \
+            -f ../src/fleet_config.yaml
+
+# Run 6-agent mixed fleet scenario
+./HA-CL-CBS -i ../benchmark/warehouse_50x50/heterogeneous/mixed_6agents_ex1.yaml \
+            -o output.yaml \
+            -f ../src/fleet_config.yaml
+
+# Backward compatibility: run with existing benchmarks (defaults to Standard type)
+./HA-CL-CBS -i ../benchmark/map100by100/agents20/obstacle/map_100by100_obst50_agents20_ex0.yaml \
+            -o output.yaml
 ```
 
 ### Visualize Results
