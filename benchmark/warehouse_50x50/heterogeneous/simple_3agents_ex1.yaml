@@ -1,0 +1,29 @@
+# Simple Heterogeneous Test - 3 agents (one of each type)
+# Map: 30m x 30m with minimal obstacles
+# Fleet: 1 Agile, 1 Standard, 1 Heavy
+
+map:
+  dimensions: [30, 30]
+  obstacles:
+    - [15, 10]
+    - [15, 12]
+    - [15, 14]
+    - [15, 16]
+    - [15, 18]
+    - [15, 20]
+
+agents:
+  - start: [5, 15, 0]
+    name: agile0
+    type: Agile
+    goal: [25, 15, 0]
+    
+  - start: [15, 5, 1.57]
+    name: standard0
+    type: Standard
+    goal: [15, 25, 1.57]
+    
+  - start: [25, 15, 3.14]
+    name: heavy0
+    type: Heavy
+    goal: [5, 15, 3.14]

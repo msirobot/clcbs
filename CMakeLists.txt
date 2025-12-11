@@ -7,8 +7,7 @@ find_package(PkgConfig)
 pkg_check_modules(YamlCpp yaml-cpp)
 
 ## OPEN MOTION PLANNING LIBRARY
-find_package(OMPL REQUIRED)
-
+pkg_check_modules(OMPL REQUIRED ompl)
 if(NOT OMPL_FOUND)
     message(AUTHOR_WARNING,"Open Motion Planning Library not found")
 endif(NOT OMPL_FOUND)
@@ -40,12 +39,15 @@ endif (DOXYGEN_FOUND)
 set(ALL_SOURCE_FILES
   ${CMAKE_CURRENT_SOURCE_DIR}/include/hybrid_astar.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/include/cl_cbs.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/ha_cl_cbs.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/fleet_registry.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/include/neighbor.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/include/planresult.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/include/timer.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/include/environment.hpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/sh_astar.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/cl_cbs.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/ha_cl_cbs.cpp
 )
 
 add_custom_target(clang-format
@@ -79,6 +81,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 include_directories(
   include
   ${OMPL_INCLUDE_DIRS}
+  /usr/include/eigen3
 )
 
 # Examples
@@ -98,6 +101,17 @@ add_executable(CL-CBS
   src/cl_cbs.cpp
 )
 target_link_libraries(CL-CBS
+  ${Boost_LIBRARIES}
+  ${OMPL_LIBRARIES}
+  yaml-cpp
+  /usr/lib/x86_64-linux-gnu/libboost_program_options.so
+)
+
+## HA-CL-CBS (Heterogeneous Adaptive)
+add_executable(HA-CL-CBS
+  src/ha_cl_cbs.cpp
+)
+target_link_libraries(HA-CL-CBS
   ${Boost_LIBRARIES}
   ${OMPL_LIBRARIES}
   yaml-cpp

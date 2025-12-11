@@ -1,13 +1,11 @@
 /**
- * @file cl_cbs.cpp
- * @author Licheng Wen (wenlc@zju.edu.cn)
- * @brief The implement of CL-CBS
- * @date 2020-11-12
+ * @file ha_cl_cbs.cpp
+ * @brief Implementation of Heterogeneous Adaptive CL-CBS
+ * @date 2024-12-11
  *
- * @copyright Copyright (c) 2020
- *
+ * @copyright Copyright (c) 2024
  */
-#include "cl_cbs.hpp"
+#include "ha_cl_cbs.hpp"
 
 #include <sys/stat.h>
 #include <unistd.h>
@@ -23,13 +21,13 @@
 #include "environment.hpp"
 #include "timer.hpp"
 
-using libMultiRobotPlanning::CL_CBS;
+using libMultiRobotPlanning::HA_CL_CBS;
 using libMultiRobotPlanning::Neighbor;
 using libMultiRobotPlanning::PlanResult;
 using namespace libMultiRobotPlanning;
 
-// calculate agent collision more precisely BUT need LONGER time
-// #define PRCISE_COLLISION
+// Use precise collision detection for heterogeneous agents
+#define PRECISE_COLLISION
 
 struct Location {
   Location(double x, double y) : x(x), y(y) {}
@@ -61,67 +59,75 @@ struct hash<Location> {
 };
 }  // namespace std
 
+/**
+ * @brief State with agent-specific dimensions for heterogeneous collision detection
+ */
 struct State {
-  State(double x, double y, double yaw, int time = 0)
-      : time(time), x(x), y(y), yaw(yaw) {
+  State(double x, double y, double yaw, int time = 0,
+        double length = 2.0, double width = 2.0, double rear_length = 1.0)
+      : time(time), x(x), y(y), yaw(yaw),
+        car_length(length), car_width(width), car_rear(rear_length) {
     rot.resize(2, 2);
     rot(0, 0) = cos(-this->yaw);
     rot(0, 1) = -sin(-this->yaw);
     rot(1, 0) = sin(-this->yaw);
     rot(1, 1) = cos(-this->yaw);
-#ifdef PRCISE_COLLISION
-    corner1 = Point(
-        this->x -
-            sqrt(pow(Constants::carWidth / 2 * 1.1, 2) +
-                 pow(Constants::LB * 1.1, 2)) *
-                cos(atan2(Constants::carWidth / 2, Constants::LB) - this->yaw),
-        this->y -
-            sqrt(pow(Constants::carWidth / 2 * 1.1, 2) +
-                 pow(Constants::LB * 1.1, 2)) *
-                sin(atan2(Constants::carWidth / 2, Constants::LB) - this->yaw));
-    corner2 = Point(
-        this->x -
-            sqrt(pow(Constants::carWidth / 2 * 1.1, 2) +
-                 pow(Constants::LB * 1.1, 2)) *
-                cos(atan2(Constants::carWidth / 2, Constants::LB) + this->yaw),
-        this->y +
-            sqrt(pow(Constants::carWidth / 2 * 1.1, 2) +
-                 pow(Constants::LB * 1.1, 2)) *
-                sin(atan2(Constants::carWidth / 2, Constants::LB) + this->yaw));
-    corner3 = Point(
-        this->x +
-            sqrt(pow(Constants::carWidth / 2 * 1.1, 2) +
-                 pow(Constants::LF * 1.1, 2)) *
-                cos(atan2(Constants::carWidth / 2, Constants::LF) - this->yaw),
-        this->y +
-            sqrt(pow(Constants::carWidth / 2 * 1.1, 2) +
-                 pow(Constants::LF * 1.1, 2)) *
-                sin(atan2(Constants::carWidth / 2, Constants::LF) - this->yaw));
-    corner4 = Point(
-        this->x +
-            sqrt(pow(Constants::carWidth / 2 * 1.1, 2) +
-                 pow(Constants::LF * 1.1, 2)) *
-                cos(atan2(Constants::carWidth / 2, Constants::LF) + this->yaw),
-        this->y -
-            sqrt(pow(Constants::carWidth / 2 * 1.1, 2) +
-                 pow(Constants::LF * 1.1, 2)) *
-                sin(atan2(Constants::carWidth / 2, Constants::LF) + this->yaw));
+#ifdef PRECISE_COLLISION
+    updateCorners();
 #endif
   }
 
   State() = default;
+
+  void updateCorners() {
+#ifdef PRECISE_COLLISION
+    // Calculate corners based on agent-specific dimensions
+    corner1 = Point(
+        this->x -
+            sqrt(pow(car_width / 2 * 1.1, 2) + pow(car_rear * 1.1, 2)) *
+                cos(atan2(car_width / 2, car_rear) - this->yaw),
+        this->y -
+            sqrt(pow(car_width / 2 * 1.1, 2) + pow(car_rear * 1.1, 2)) *
+                sin(atan2(car_width / 2, car_rear) - this->yaw));
+    corner2 = Point(
+        this->x -
+            sqrt(pow(car_width / 2 * 1.1, 2) + pow(car_rear * 1.1, 2)) *
+                cos(atan2(car_width / 2, car_rear) + this->yaw),
+        this->y +
+            sqrt(pow(car_width / 2 * 1.1, 2) + pow(car_rear * 1.1, 2)) *
+                sin(atan2(car_width / 2, car_rear) + this->yaw));
+    corner3 = Point(
+        this->x +
+            sqrt(pow(car_width / 2 * 1.1, 2) + pow(car_length * 1.1, 2)) *
+                cos(atan2(car_width / 2, car_length) - this->yaw),
+        this->y +
+            sqrt(pow(car_width / 2 * 1.1, 2) + pow(car_length * 1.1, 2)) *
+                sin(atan2(car_width / 2, car_length) - this->yaw));
+    corner4 = Point(
+        this->x +
+            sqrt(pow(car_width / 2 * 1.1, 2) + pow(car_length * 1.1, 2)) *
+                cos(atan2(car_width / 2, car_length) + this->yaw),
+        this->y -
+            sqrt(pow(car_width / 2 * 1.1, 2) + pow(car_length * 1.1, 2)) *
+                sin(atan2(car_width / 2, car_length) + this->yaw));
+#endif
+  }
 
   bool operator==(const State& s) const {
     return std::tie(time, x, y, yaw) == std::tie(s.time, s.x, s.y, s.yaw);
   }
 
   bool agentCollision(const State& other) const {
-#ifndef PRCISE_COLLISION
+#ifndef PRECISE_COLLISION
+    // Simple circular collision check with max dimensions
+    double max_size1 = sqrt(pow(2 * car_length, 2) + pow(car_width, 2));
+    double max_size2 = sqrt(pow(2 * other.car_length, 2) + pow(other.car_width, 2));
     if (pow(this->x - other.x, 2) + pow(this->y - other.y, 2) <
-        pow(2 * Constants::LF, 2) + pow(Constants::carWidth, 2))
+        pow((max_size1 + max_size2) / 2, 2))
       return true;
     return false;
 #else
+    // Precise OBB collision detection
     std::vector<Segment> rectangle1{Segment(this->corner1, this->corner2),
                                     Segment(this->corner2, this->corner3),
                                     Segment(this->corner3, this->corner4),
@@ -144,10 +150,10 @@ struct State {
     obs(0, 1) = obstacle.y - this->y;
 
     auto rotated_obs = boost::numeric::ublas::prod(obs, rot);
-    if (rotated_obs(0, 0) > -Constants::LB - Constants::obsRadius &&
-        rotated_obs(0, 0) < Constants::LF + Constants::obsRadius &&
-        rotated_obs(0, 1) > -Constants::carWidth / 2.0 - Constants::obsRadius &&
-        rotated_obs(0, 1) < Constants::carWidth / 2.0 + Constants::obsRadius)
+    if (rotated_obs(0, 0) > -car_rear - Constants::obsRadius &&
+        rotated_obs(0, 0) < car_length + Constants::obsRadius &&
+        rotated_obs(0, 1) > -car_width / 2.0 - Constants::obsRadius &&
+        rotated_obs(0, 1) < car_width / 2.0 + Constants::obsRadius)
       return true;
     return false;
   }
@@ -160,6 +166,11 @@ struct State {
   double x;
   double y;
   double yaw;
+  
+  // Agent-specific dimensions
+  double car_length;   // LF
+  double car_width;    // W
+  double car_rear;     // LB
 
  private:
   boost::numeric::ublas::matrix<double> rot;
@@ -197,13 +208,17 @@ struct Conflict {
   }
 };
 
+/**
+ * @brief Extended Constraint with adaptive wait time
+ */
 struct Constraint {
-  Constraint(int time, State s, size_t agentid)
-      : time(time), s(s), agentid(agentid) {}
+  Constraint(int time, State s, size_t agentid, int wait_time = -1)
+      : time(time), s(s), agentid(agentid), adaptive_wait_time(wait_time) {}
   Constraint() = default;
   int time;
   State s;
   size_t agentid;
+  int adaptive_wait_time;  // -1 means use default
 
   bool operator<(const Constraint& other) const {
     return std::tie(time, s.x, s.y, s.yaw, agentid) <
@@ -219,12 +234,13 @@ struct Constraint {
 
   friend std::ostream& operator<<(std::ostream& os, const Constraint& c) {
     return os << "Constraint[" << c.time << "," << c.s << "from " << c.agentid
-              << "]";
+              << " wait:" << c.adaptive_wait_time << "]";
   }
 
   bool satisfyConstraint(const State& state) const {
-    if (state.time < this->time ||
-        state.time > this->time + Constants::constraintWaitTime)
+    int wait_time = (adaptive_wait_time > 0) ? adaptive_wait_time 
+                                              : Constants::constraintWaitTime;
+    if (state.time < this->time || state.time > this->time + wait_time)
       return true;
     return !this->s.agentCollision(state);
   }
@@ -245,7 +261,6 @@ struct hash<Constraint> {
 };
 }  // namespace std
 
-// FIXME: modidy data struct, it's not the best option
 struct Constraints {
   std::unordered_set<Constraint> constraints;
 
@@ -268,35 +283,77 @@ struct Constraints {
   }
 };
 
+/**
+ * @brief Read fleet configuration from YAML
+ */
+FleetRegistry readFleetConfig(const std::string& config_file) {
+  FleetRegistry fleet_registry;
+  
+  try {
+    YAML::Node config = YAML::LoadFile(config_file);
+    
+    if (config["fleet"]) {
+      for (const auto& robot_node : config["fleet"]) {
+        RobotSpec spec;
+        spec.type = robot_node["type"].as<std::string>();
+        spec.length = robot_node["length"].as<double>();
+        spec.width = robot_node["width"].as<double>();
+        spec.rear_length = robot_node["rear_length"].as<double>();
+        spec.min_turning_radius = robot_node["min_turning_radius"].as<double>();
+        spec.max_velocity = robot_node["max_velocity"].as<double>();
+        spec.delta_t = robot_node["delta_t"].as<double>();
+        spec.penalty_turning = robot_node["penalty_turning"].as<double>();
+        spec.penalty_reversing = robot_node["penalty_reversing"].as<double>();
+        spec.penalty_cod = robot_node["penalty_cod"].as<double>();
+        
+        fleet_registry.registerRobotSpec(spec);
+      }
+    }
+  } catch (std::exception& e) {
+    std::cerr << "\033[1m\033[33mWARNING: Could not load fleet config: "
+              << config_file << "\033[0m\n";
+    std::cerr << "Using default fleet specifications.\n";
+  }
+  
+  return fleet_registry;
+}
+
+/**
+ * @brief Read agent configuration from file (backward compatible)
+ */
 void readAgentConfig() {
   YAML::Node car_config;
   std::string test(__FILE__);
-  boost::replace_all(test, "cl_cbs.cpp", "config.yaml");
+  boost::replace_all(test, "ha_cl_cbs.cpp", "config.yaml");
   try {
     car_config = YAML::LoadFile(test.c_str());
   } catch (std::exception& e) {
     std::cerr << "\033[1m\033[33mWARNING: Failed to load agent config file: "
               << test << "\033[0m , Using default params. \n";
   }
-  // int car_r = car_config["r"].as<int>();
-  Constants::r = car_config["r"].as<double>();
-  Constants::deltat = car_config["deltat"].as<double>();
-  Constants::penaltyTurning = car_config["penaltyTurning"].as<double>();
-  Constants::penaltyReversing = car_config["penaltyReversing"].as<double>();
-  Constants::penaltyCOD = car_config["penaltyCOD"].as<double>();
-  // map resolution
-  Constants::mapResolution = car_config["mapResolution"].as<double>();
-  // change to set calcIndex resolution
+  
+  // Set default (Standard robot) parameters for backward compatibility
+  Constants::r = car_config["r"] ? car_config["r"].as<double>() : 3.0;
+  Constants::deltat = car_config["deltat"] ? car_config["deltat"].as<double>() : 0.706;
+  Constants::penaltyTurning = car_config["penaltyTurning"] ? 
+                              car_config["penaltyTurning"].as<double>() : 1.5;
+  Constants::penaltyReversing = car_config["penaltyReversing"] ?
+                                car_config["penaltyReversing"].as<double>() : 2.0;
+  Constants::penaltyCOD = car_config["penaltyCOD"] ?
+                          car_config["penaltyCOD"].as<double>() : 2.0;
+  Constants::mapResolution = car_config["mapResolution"] ?
+                             car_config["mapResolution"].as<double>() : 2.0;
   Constants::xyResolution = Constants::r * Constants::deltat;
   Constants::yawResolution = Constants::deltat;
 
-  Constants::carWidth = car_config["carWidth"].as<double>();
-  Constants::LF = car_config["LF"].as<double>();
-  Constants::LB = car_config["LB"].as<double>();
-  // obstacle default radius
-  Constants::obsRadius = car_config["obsRadius"].as<double>();
-  // least time to wait for constraint
-  Constants::constraintWaitTime = car_config["constraintWaitTime"].as<double>();
+  Constants::carWidth = car_config["carWidth"] ?
+                        car_config["carWidth"].as<double>() : 2.0;
+  Constants::LF = car_config["LF"] ? car_config["LF"].as<double>() : 2.0;
+  Constants::LB = car_config["LB"] ? car_config["LB"].as<double>() : 1.0;
+  Constants::obsRadius = car_config["obsRadius"] ?
+                         car_config["obsRadius"].as<double>() : 0.8;
+  Constants::constraintWaitTime = car_config["constraintWaitTime"] ?
+                                  car_config["constraintWaitTime"].as<double>() : 2;
 
   Constants::dx = {Constants::r * Constants::deltat,
                    Constants::r * sin(Constants::deltat),
@@ -316,16 +373,18 @@ void readAgentConfig() {
 
 int main(int argc, char* argv[]) {
   namespace po = boost::program_options;
-  // Declare the supported options.
   po::options_description desc("Allowed options");
   std::string inputFile;
   std::string outputFile;
+  std::string fleetConfig;
   int batchSize;
   desc.add_options()("help", "produce help message")(
       "input,i", po::value<std::string>(&inputFile)->required(),
       "input file (YAML)")("output,o",
                            po::value<std::string>(&outputFile)->required(),
                            "output file (YAML)")(
+      "fleet,f", po::value<std::string>(&fleetConfig)->default_value(""),
+      "fleet configuration file (YAML)")(
       "batchsize,b", po::value<int>(&batchSize)->default_value(10),
       "batch size for iter");
 
@@ -345,6 +404,12 @@ int main(int argc, char* argv[]) {
   }
 
   readAgentConfig();
+  
+  // Load fleet registry
+  FleetRegistry fleet_registry;
+  if (!fleetConfig.empty()) {
+    fleet_registry = readFleetConfig(fleetConfig);
+  }
 
   YAML::Node map_config;
   try {
@@ -354,6 +419,7 @@ int main(int argc, char* argv[]) {
               << "\033[0m \n";
     return 0;
   }
+  
   const auto& dim = map_config["map"]["dimensions"];
   int dimx = dim[0].as<int>();
   int dimy = dim[1].as<int>();
@@ -362,135 +428,110 @@ int main(int argc, char* argv[]) {
   std::multimap<int, State> dynamic_obstacles;
   std::vector<State> goals;
   std::vector<State> startStates;
+  std::vector<std::string> agent_types;
+  
   for (const auto& node : map_config["map"]["obstacles"]) {
     obstacles.insert(Location(node[0].as<double>(), node[1].as<double>()));
   }
+  
   for (const auto& node : map_config["agents"]) {
     const auto& start = node["start"];
     const auto& goal = node["goal"];
+    
+    // Get agent type (default to "Standard" for backward compatibility)
+    std::string type = "Standard";
+    if (node["type"]) {
+      type = node["type"].as<std::string>();
+    }
+    agent_types.push_back(type);
+    
+    const RobotSpec& spec = fleet_registry.getRobotSpec(type);
+    
     startStates.emplace_back(State(start[0].as<double>(), start[1].as<double>(),
-                                   start[2].as<double>()));
-    // std::cout << "s: " << startStates.back() << std::endl;
+                                   start[2].as<double>(), 0,
+                                   spec.length, spec.width, spec.rear_length));
     goals.emplace_back(State(goal[0].as<double>(), goal[1].as<double>(),
-                             goal[2].as<double>()));
+                             goal[2].as<double>(), 0,
+                             spec.length, spec.width, spec.rear_length));
   }
 
-  std::cout << "Calculating Solution...\n";
+  std::cout << "Calculating HA-CL-CBS Solution with " << agent_types.size() 
+            << " heterogeneous agents...\n";
+  
+  // Print fleet composition
+  std::map<std::string, int> type_counts;
+  for (const auto& type : agent_types) {
+    type_counts[type]++;
+  }
+  std::cout << "Fleet composition:\n";
+  for (const auto& pair : type_counts) {
+    std::cout << "  " << pair.first << ": " << pair.second << " agents\n";
+  }
+  
   double timer = 0;
   bool success = false;
   std::vector<PlanResult<State, Action, double>> solution;
-  for (size_t iter = 0; iter < (double)goals.size() / batchSize; iter++) {
-    size_t first = iter * batchSize;
-    size_t last = first + batchSize;
-    if (last >= goals.size()) last = goals.size();
-    std::vector<State> m_goals(goals.begin() + first, goals.begin() + last);
-    std::vector<State> m_starts(startStates.begin() + first,
-                                startStates.begin() + last);
-
-    Environment<Location, State, Action, double, Conflict, Constraint,
-                Constraints>
-        mapf(dimx, dimy, obstacles, dynamic_obstacles, m_goals);
-    if (!mapf.startAndGoalValid(m_starts, iter, batchSize)) {
-      success = false;
-      break;
-    }
-    for (auto goal = goals.begin() + last; goal != goals.end(); goal++) {
-      dynamic_obstacles.insert(
-          std::pair<int, State>(-1, State(goal->x, goal->y, goal->yaw)));
-    }
-    CL_CBS<State, Action, double, Conflict, Constraints,
-           Environment<Location, State, Action, double, Conflict, Constraint,
-                       Constraints>>
-        cbsHybrid(mapf);
-    std::vector<PlanResult<State, Action, double>> m_solution;
-    Timer iterTimer;
-    success = cbsHybrid.search(m_starts, m_solution);
-    iterTimer.stop();
-
-    if (!success) {
-      std::cout << "\033[1m\033[31m No." << iter
-                << "iter fail to find a solution \033[0m\n";
-      break;
-    } else {
-      solution.insert(solution.end(), m_solution.begin(), m_solution.end());
-      for (size_t a = 0; a < m_solution.size(); ++a) {
-        for (const auto& state : m_solution[a].states)
-          dynamic_obstacles.insert(std::pair<int, State>(
-              state.first.time,
-              State(state.first.x, state.first.y, state.first.yaw)));
-        State lastState = m_solution[a].states.back().first;
-        dynamic_obstacles.insert(std::pair<int, State>(
-            -lastState.time, State(lastState.x, lastState.y, lastState.yaw)));
-      }
-      timer += iterTimer.elapsedSeconds();
-      std::cout << "Complete " << iter
-                << " iter. Runtime:" << iterTimer.elapsedSeconds()
-                << " Expand high-level nodes:" << mapf.highLevelExpanded()
-                << " Average Low-level-search time:"
-                << iterTimer.elapsedSeconds() / mapf.highLevelExpanded() /
-                       m_goals.size()
-                << std::endl;
-    }
-    dynamic_obstacles.erase(-1);
+  
+  // For now, process all agents in one batch
+  // TODO: Implement batching for large fleets
+  
+  Environment<Location, State, Action, double, Conflict, Constraint,
+              Constraints>
+      mapf(dimx, dimy, obstacles, dynamic_obstacles, goals);
+      
+  if (!mapf.startAndGoalValid(startStates, 0, startStates.size())) {
+    std::cerr << "\033[1m\033[31mERROR: Invalid start/goal configuration\033[0m\n";
+    return 1;
   }
 
-  std::ofstream out;
-  out = std::ofstream(outputFile);
+  HA_CL_CBS<State, Action, double, Conflict, Constraints,
+            Environment<Location, State, Action, double, Conflict, Constraint,
+                       Constraints>>
+      ha_cbs(mapf, fleet_registry);
+
+  Timer planning_timer;
+  success = ha_cbs.search(startStates, agent_types, solution);
+  timer = planning_timer.elapsedSeconds();
 
   if (success) {
     std::cout << "\033[1m\033[32m Successfully find solution! \033[0m\n";
-
-    double makespan = 0, flowtime = 0, cost = 0;
-    for (const auto& s : solution) cost += s.cost;
-
-    for (size_t a = 0; a < solution.size(); ++a) {
-      // calculate makespan
-      double current_makespan = 0;
-      for (size_t i = 0; i < solution[a].actions.size(); ++i) {
-        // some action cost have penalty coefficient
-
-        if (solution[a].actions[i].second < Constants::dx[0])
-          current_makespan += solution[a].actions[i].second;
-        else if (solution[a].actions[i].first % 3 == 0)
-          current_makespan += Constants::dx[0];
-        else
-          current_makespan += Constants::r * Constants::deltat;
-      }
-      flowtime += current_makespan;
-      if (current_makespan > makespan) makespan = current_makespan;
+    std::cout << "Planning time: " << timer << " s\n";
+    
+    // Calculate statistics
+    double total_flowtime = 0;
+    double max_makespan = 0;
+    for (const auto& s : solution) {
+      total_flowtime += s.cost;
+      max_makespan = std::max(max_makespan, s.cost);
     }
-    std::cout << " Runtime: " << timer << std::endl
-              << " Makespan:" << makespan << std::endl
-              << " Flowtime:" << flowtime << std::endl
-              << " cost:" << cost << std::endl;
-    // output to file
+    
+    std::cout << "Makespan: " << max_makespan << "\n";
+    std::cout << "Flowtime: " << total_flowtime << "\n";
+    std::cout << "High-level expanded: " << mapf.highLevelExpanded() << "\n";
+    std::cout << "Low-level expanded: " << mapf.lowLevelExpanded() << "\n";
+
+    // Write output
+    std::ofstream out(outputFile);
     out << "statistics:" << std::endl;
-    out << "  cost: " << cost << std::endl;
-    out << "  makespan: " << makespan << std::endl;
-    out << "  flowtime: " << flowtime << std::endl;
+    out << "  cost: " << total_flowtime << std::endl;
+    out << "  makespan: " << max_makespan << std::endl;
     out << "  runtime: " << timer << std::endl;
+    out << "  highLevelExpanded: " << mapf.highLevelExpanded() << std::endl;
+    out << "  lowLevelExpanded: " << mapf.lowLevelExpanded() << std::endl;
     out << "schedule:" << std::endl;
     for (size_t a = 0; a < solution.size(); ++a) {
-      // std::cout << "Solution for: " << a << std::endl;
-      // for (size_t i = 0; i < solution[a].actions.size(); ++i) {
-      //   std::cout << solution[a].states[i].second << ": "
-      //             << solution[a].states[i].first << "->"
-      //             << solution[a].actions[i].first
-      //             << "(cost: " << solution[a].actions[i].second << ")"
-      //             << std::endl;
-      // }
-      // std::cout << solution[a].states.back().second << ": "
-      //           << solution[a].states.back().first << std::endl;
-
       out << "  agent" << a << ":" << std::endl;
+      out << "    type: " << agent_types[a] << std::endl;
       for (const auto& state : solution[a].states) {
-        out << "    - x: " << state.first.x << std::endl
-            << "      y: " << state.first.y << std::endl
-            << "      yaw: " << state.first.yaw << std::endl
-            << "      t: " << state.first.time << std::endl;
+        out << "      - x: " << state.first.x << std::endl
+            << "        y: " << state.first.y << std::endl
+            << "        yaw: " << state.first.yaw << std::endl
+            << "        t: " << state.first.time << std::endl;
       }
     }
   } else {
     std::cout << "\033[1m\033[31m Fail to find paths \033[0m\n";
   }
+
+  return 0;
 }

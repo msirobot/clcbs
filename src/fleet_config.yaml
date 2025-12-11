@@ -1,0 +1,36 @@
+# Fleet Configuration for Heterogeneous HA-CL-CBS
+# Defines three robot types with different kinematic constraints
+
+fleet:
+  - type: "Agile"
+    length: 0.6           # LF - distance from rear axle to front [m]
+    width: 0.5            # W - robot width [m]
+    rear_length: 0.3      # LB - distance from rear axle to back [m]
+    min_turning_radius: 0.5  # R_min [m]
+    max_velocity: 2.0     # v_max [m/s]
+    delta_t: 0.706        # Angular resolution [rad] (~40.5 degrees)
+    penalty_turning: 1.3
+    penalty_reversing: 1.8
+    penalty_cod: 1.8
+    
+  - type: "Standard"
+    length: 2.0           # LF [m]
+    width: 2.0            # W [m]
+    rear_length: 1.0      # LB [m]
+    min_turning_radius: 3.0  # R_min [m]
+    max_velocity: 1.2     # v_max [m/s]
+    delta_t: 0.706        # Angular resolution [rad]
+    penalty_turning: 1.5
+    penalty_reversing: 2.0
+    penalty_cod: 2.0
+    
+  - type: "Heavy"
+    length: 3.0           # LF [m]
+    width: 1.5            # W [m]
+    rear_length: 1.5      # LB [m]
+    min_turning_radius: 4.5  # R_min [m]
+    max_velocity: 0.8     # v_max [m/s]
+    delta_t: 0.706        # Angular resolution [rad]
+    penalty_turning: 1.8
+    penalty_reversing: 2.5
+    penalty_cod: 2.5
