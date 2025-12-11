@@ -7,8 +7,7 @@ find_package(PkgConfig)
 pkg_check_modules(YamlCpp yaml-cpp)
 
 ## OPEN MOTION PLANNING LIBRARY
-find_package(OMPL REQUIRED)
-
+pkg_check_modules(OMPL REQUIRED ompl)
 if(NOT OMPL_FOUND)
     message(AUTHOR_WARNING,"Open Motion Planning Library not found")
 endif(NOT OMPL_FOUND)
@@ -79,6 +78,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 include_directories(
   include
   ${OMPL_INCLUDE_DIRS}
+  /usr/include/eigen3
 )
 
 # Examples

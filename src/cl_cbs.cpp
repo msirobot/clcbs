@@ -13,6 +13,7 @@
 #include <unistd.h>
 #include <yaml-cpp/yaml.h>
 
+#include <boost/algorithm/string.hpp>
 #include <boost/functional/hash.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/program_options.hpp>
