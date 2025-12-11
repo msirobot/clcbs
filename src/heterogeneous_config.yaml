@@ -1,0 +1,39 @@
+robot_types:
+  AGILE:
+    wheelbase: 0.5
+    width: 0.5
+    LF: 0.4
+    LB: 0.2
+    R_min: 0.5
+    v_max: 2.0
+    deltat: 0.15
+    penaltyTurning: 1.2
+    penaltyReversing: 1.5
+    
+  STANDARD:
+    wheelbase: 1.2
+    width: 1.0
+    LF: 1.0
+    LB: 0.5
+    R_min: 2.5
+    v_max: 1.2
+    deltat: 0.12
+    penaltyTurning: 1.5
+    penaltyReversing: 2.0
+    
+  HEAVY:
+    wheelbase: 2.5
+    width: 1.5
+    LF: 2.0
+    LB: 1.0
+    R_min: 4.5
+    v_max: 0.8
+    deltat: 0.08
+    penaltyTurning: 2.0
+    penaltyReversing: 2.5
+
+# Map resolution and obstacle parameters
+mapResolution: 2.0
+obsRadius: 0.8
+constraintWaitTime: 2
+penaltyCOD: 2.0

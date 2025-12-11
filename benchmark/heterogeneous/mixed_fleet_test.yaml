@@ -1,0 +1,39 @@
+map:
+  dimensions: [50, 50]
+  obstacles:
+    - [10, 10]
+    - [20, 20]
+    - [30, 30]
+    - [15, 35]
+    - [35, 15]
+
+agents:
+  - name: agent0
+    type: HEAVY
+    start: [5, 5, 0]
+    goal: [45, 45, 1.57]
+  
+  - name: agent1
+    type: AGILE
+    start: [10, 5, 0]
+    goal: [40, 45, 0]
+  
+  - name: agent2
+    type: STANDARD
+    start: [15, 5, 0.5]
+    goal: [35, 40, -1.57]
+  
+  - name: agent3
+    type: AGILE
+    start: [5, 10, 1.57]
+    goal: [45, 40, 0]
+    
+  - name: agent4
+    type: STANDARD
+    start: [5, 15, 0]
+    goal: [40, 35, 1.57]
+    
+  - name: agent5
+    type: AGILE
+    start: [8, 8, 0.785]
+    goal: [42, 42, -0.785]
