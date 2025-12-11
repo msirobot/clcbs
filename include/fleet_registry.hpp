@@ -14,6 +14,9 @@
 
 namespace libMultiRobotPlanning {
 
+// Default angular resolution constant: 6.75 * 6 degrees = 40.5 degrees
+constexpr double DEFAULT_DELTA_T_RAD = 6.75 * 6.0 / 180.0 * M_PI;  // ~0.706 radians
+
 /**
  * @brief Robot specification with kinematic parameters
  * 
@@ -125,7 +128,7 @@ class FleetRegistry {
     agile.rear_length = 0.3;      // LB = 0.3m
     agile.min_turning_radius = 0.5;  // R_min = 0.5m
     agile.max_velocity = 2.0;     // v_max = 2.0 m/s
-    agile.delta_t = 6.75 * 6 / 180.0 * M_PI;  // ~0.706 rad
+    agile.delta_t = DEFAULT_DELTA_T_RAD;
     agile.penalty_turning = 1.3;
     agile.penalty_reversing = 1.8;
     agile.penalty_cod = 1.8;
@@ -139,7 +142,7 @@ class FleetRegistry {
     standard.rear_length = 1.0;   // LB = 1.0m
     standard.min_turning_radius = 3.0;  // R_min = 3.0m (was 2.5m in spec, using 3.0 for original compatibility)
     standard.max_velocity = 1.2;  // v_max = 1.2 m/s
-    standard.delta_t = 6.75 * 6 / 180.0 * M_PI;  // ~0.706 rad
+    standard.delta_t = DEFAULT_DELTA_T_RAD;
     standard.penalty_turning = 1.5;
     standard.penalty_reversing = 2.0;
     standard.penalty_cod = 2.0;
@@ -153,7 +156,7 @@ class FleetRegistry {
     heavy.rear_length = 1.5;      // LB = 1.5m
     heavy.min_turning_radius = 4.5;  // R_min = 4.5m
     heavy.max_velocity = 0.8;     // v_max = 0.8 m/s
-    heavy.delta_t = 6.75 * 6 / 180.0 * M_PI;  // ~0.706 rad
+    heavy.delta_t = DEFAULT_DELTA_T_RAD;
     heavy.penalty_turning = 1.8;
     heavy.penalty_reversing = 2.5;
     heavy.penalty_cod = 2.5;

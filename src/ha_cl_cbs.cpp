@@ -27,7 +27,7 @@ using libMultiRobotPlanning::PlanResult;
 using namespace libMultiRobotPlanning;
 
 // Use precise collision detection for heterogeneous agents
-#define PRCISE_COLLISION
+#define PRECISE_COLLISION
 
 struct Location {
   Location(double x, double y) : x(x), y(y) {}
@@ -72,7 +72,7 @@ struct State {
     rot(0, 1) = -sin(-this->yaw);
     rot(1, 0) = sin(-this->yaw);
     rot(1, 1) = cos(-this->yaw);
-#ifdef PRCISE_COLLISION
+#ifdef PRECISE_COLLISION
     updateCorners();
 #endif
   }
@@ -80,7 +80,7 @@ struct State {
   State() = default;
 
   void updateCorners() {
-#ifdef PRCISE_COLLISION
+#ifdef PRECISE_COLLISION
     // Calculate corners based on agent-specific dimensions
     corner1 = Point(
         this->x -
@@ -118,7 +118,7 @@ struct State {
   }
 
   bool agentCollision(const State& other) const {
-#ifndef PRCISE_COLLISION
+#ifndef PRECISE_COLLISION
     // Simple circular collision check with max dimensions
     double max_size1 = sqrt(pow(2 * car_length, 2) + pow(car_width, 2));
     double max_size2 = sqrt(pow(2 * other.car_length, 2) + pow(other.car_width, 2));

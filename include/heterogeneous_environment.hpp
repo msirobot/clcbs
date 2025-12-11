@@ -80,13 +80,13 @@ class HeterogeneousEnvironment : public Environment<Location, State, Action, Cos
                            std::unordered_set<Location> obstacles,
                            std::multimap<int, State> dynamic_obstacles,
                            std::vector<State> goals)
-      : Base(maxx, dimy, std::move(obstacles), std::move(dynamic_obstacles),
+      : Base(maxx, maxy, std::move(obstacles), std::move(dynamic_obstacles),
              std::move(goals)),
         m_current_agent_params() {
     // Initialize with default (Standard) parameters
     RobotSpec default_spec;
     default_spec.min_turning_radius = 3.0;
-    default_spec.delta_t = 6.75 * 6 / 180.0 * M_PI;
+    default_spec.delta_t = DEFAULT_DELTA_T_RAD;
     default_spec.penalty_turning = 1.5;
     default_spec.penalty_reversing = 2.0;
     default_spec.penalty_cod = 2.0;
