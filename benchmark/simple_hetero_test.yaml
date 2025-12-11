@@ -1,0 +1,23 @@
+# Simple test scenario for heterogeneous robot fleet
+# 3 agents with mixed types in a simple environment
+
+map:
+  dimensions: [30, 30]
+  obstacles:
+    - [15, 15]
+
+agents:
+  # Agent 0: Heavy Forklift (Type C) - planned first due to high capability score
+  - name: agent0
+    start: [5, 5, 0]
+    goal: [25, 25, 0]
+
+  # Agent 1: Transporter (Type B)
+  - name: agent1
+    start: [5, 10, 0]
+    goal: [25, 20, 0]
+
+  # Agent 2: Sorting AGV (Type A) - smallest, most agile
+  - name: agent2
+    start: [5, 15, 0]
+    goal: [25, 15, 0]

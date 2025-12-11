@@ -1,0 +1,34 @@
+# Simplified fleet configuration for testing
+agents:
+  # Type C: Heavy Forklift (large, slow)
+  - id: 0
+    type: "HEAVY_FORKLIFT"
+    length: 3.0
+    width: 1.5
+    wheelbase: 2.5
+    LF: 2.0
+    LB: 1.0
+    max_steering_angle: 0.35
+    max_velocity: 0.8
+
+  # Type B: Transporter (medium)
+  - id: 1
+    type: "TRANSPORTER"
+    length: 1.5
+    width: 1.0
+    wheelbase: 1.2
+    LF: 0.9
+    LB: 0.6
+    max_steering_angle: 0.5
+    max_velocity: 1.2
+
+  # Type A: Sorting AGV (small, agile)
+  - id: 2
+    type: "SORTING_AGV"
+    length: 0.6
+    width: 0.5
+    wheelbase: 0.4
+    LF: 0.35
+    LB: 0.25
+    max_steering_angle: 0.8
+    max_velocity: 2.0

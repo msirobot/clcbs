@@ -14,11 +14,15 @@ matplotlib.use("Qt5Agg")
 
 PLOTLINE = True  # True
 
+# Default car dimensions (can be overridden by agent-specific values)
 carWidth = 2.0
 LF = 2.0
 LB = 1.0
 obsRadius = 1
 framesPerMove = 3
+
+# Dictionary to store agent-specific dimensions
+agent_dimensions = {}
 
 
 def get_cmap(n, name='hsv'):
@@ -31,6 +35,24 @@ class Animation:
     def __init__(self, map, schedule):
         self.map = map
         self.schedule = schedule
+        
+        # Load agent-specific dimensions from schedule if available
+        self.agent_dims = {}
+        if "schedule" in schedule:
+            for agent_name in schedule["schedule"]:
+                agent_data = schedule["schedule"][agent_name]
+                if isinstance(agent_data, list) and len(agent_data) > 0:
+                    # Agent data is a list of states
+                    pass
+                elif isinstance(agent_data, dict):
+                    # Check if agent has dimension info (for HA-CL-CBS output)
+                    pass
+                # Use defaults for now
+                self.agent_dims[agent_name] = {
+                    'width': carWidth,
+                    'LF': LF,
+                    'LB': LB
+                }
 
         aspect = map["map"]["dimensions"][0] / map["map"]["dimensions"][1]
 
@@ -77,9 +99,10 @@ class Animation:
         cmap = get_cmap(len(map["agents"])+1)
         # draw goals first
         for d, i in zip(map["agents"], range(0, len(map["agents"]))):
-            cw = carWidth
-            lb = LB
-            lf = LF
+            agent_name = "agent" + str(i)
+            cw = self.agent_dims.get(agent_name, {}).get('width', carWidth)
+            lb = self.agent_dims.get(agent_name, {}).get('LB', LB)
+            lf = self.agent_dims.get(agent_name, {}).get('LF', LF)
             self.patches.append(Rectangle(
                 (d["goal"][0] - math.sqrt(cw/2*cw/2+lb*lb) * math.sin(math.atan2(lb, cw/2)+d["goal"][2]),
                  d["goal"][1] - math.sqrt(cw/2*cw/2+lb*lb) * math.cos(math.atan2(lb, cw/2)+d["goal"][2])),
@@ -145,9 +168,9 @@ class Animation:
             pos = self.getState(i / framesPerMove, agent)
             p = (pos[0], pos[1])
             # print(pos[0], pos[1], -pos[2] / 3.15159 * 180)'
-            cw = carWidth
-            lb = LB
-            lf = LF
+            cw = self.agent_dims.get(agent_name, {}).get('width', carWidth)
+            lb = self.agent_dims.get(agent_name, {}).get('LB', LB)
+            lf = self.agent_dims.get(agent_name, {}).get('LF', LF)
 
             self.agents[agent_name]._x0 = pos[0] - \
                 math.sqrt(cw/2*cw/2+lb*lb) * \

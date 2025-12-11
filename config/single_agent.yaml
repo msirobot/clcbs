@@ -1,0 +1,11 @@
+# Single agent for testing
+agents:
+  - id: 0
+    type: "TRANSPORTER"
+    length: 1.5
+    width: 1.0
+    wheelbase: 1.2
+    LF: 0.9
+    LB: 0.6
+    max_steering_angle: 0.5
+    max_velocity: 1.2

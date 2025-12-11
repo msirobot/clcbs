@@ -16,6 +16,7 @@
 #include <boost/functional/hash.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/program_options.hpp>
+#include <boost/algorithm/string.hpp>
 #include <fstream>
 #include <iostream>
 

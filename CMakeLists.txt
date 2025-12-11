@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.5)
 
 project(clcbs)
 
+# Add cmake directory to module path
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
+
 find_package(Boost 1.58 REQUIRED COMPONENTS program_options)
 find_package(PkgConfig)
 pkg_check_modules(YamlCpp yaml-cpp)
@@ -102,6 +105,16 @@ target_link_libraries(CL-CBS
   ${OMPL_LIBRARIES}
   yaml-cpp
   /usr/lib/x86_64-linux-gnu/libboost_program_options.so
+)
+
+## HA-CL-CBS (Heterogeneous Adaptive CL-CBS)
+add_executable(ha_cl_cbs
+  src/ha_cl_cbs.cpp
+)
+target_link_libraries(ha_cl_cbs
+  ${Boost_LIBRARIES}
+  ${OMPL_LIBRARIES}
+  yaml-cpp
 )
 
 ## test CL-CBS

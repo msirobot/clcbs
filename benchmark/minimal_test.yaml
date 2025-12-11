@@ -1,0 +1,10 @@
+# Minimal test with just 1 agent
+map:
+  dimensions: [20, 20]
+  obstacles: []
+
+agents:
+  # Single agent test
+  - name: agent0
+    start: [5, 5, 0]
+    goal: [15, 15, 0]
